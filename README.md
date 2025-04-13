@@ -1,6 +1,6 @@
 # The Words for LLM's
 
-![Dashboard Screenshot](screenshots/dashboard.png)
+![Zrzut ekranu 2025-04-13 144552](https://github.com/user-attachments/assets/d6c45804-1c75-485f-988d-358a4db681ca)
 
 A proxy service that integrates LLMs (Large Language Models) with webhook automation, featuring keyword-based triggers and a web-based management interface.
 
@@ -38,14 +38,17 @@ The Words for LLM's is a proxy service that sits between your applications and L
 - **Containerization**: Docker and Docker Compose
 
 ### 📊 Screenshots
-
-![Dashboard](screenshots/dashboard.png)
+![Zrzut ekranu 2025-04-13 144552](https://github.com/user-attachments/assets/f47afab0-235a-45ff-a10b-dd39d20f7501)
 *Dashboard view showing system status*
 
-![Keywords Management](screenshots/keywords.png)
+![Zrzut ekranu 2025-04-13 144621](https://github.com/user-attachments/assets/16b67854-7fe5-4f06-8593-fded7e27d37b)
 *Keywords management interface*
 
-![Settings](screenshots/settings.png)
+![Zrzut ekranu 2025-04-13 144724](https://github.com/user-attachments/assets/5f213b7b-18de-483e-83f8-df1e218ffe2b)
+![Zrzut ekranu 2025-04-13 144740](https://github.com/user-attachments/assets/2de39809-103d-4bae-a4fe-72a9fafeb06a)
+![Zrzut ekranu 2025-04-13 144802](https://github.com/user-attachments/assets/aecda3c9-77db-49a9-a898-7f617111203a)
+![Zrzut ekranu 2025-04-13 144823](https://github.com/user-attachments/assets/f8dfb0e1-b8c4-43f1-b7c6-6855800db516)
+
 *System configuration settings*
 
 ### 🚀 Installation
