@@ -55,8 +55,8 @@ The Words for LLM's is a proxy service that sits between your applications and L
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/words-for-llms.git
-   cd words-for-llms
+   git clone https://github.com/PPTG/The-Words-for-LLM-s.git
+   cd The-Words-for-LLM-s
    ```
 
 2. Configure the environment variables in `docker-compose.yml` for your setup.
@@ -127,21 +127,24 @@ The Words for LLM's to usługa proxy działająca pomiędzy aplikacjami a backen
 
 ### 📊 Zrzuty ekranu
 
-![Dashboard](screenshots/dashboard.png)
+![Zrzut ekranu 2025-04-13 144552](https://github.com/user-attachments/assets/f47afab0-235a-45ff-a10b-dd39d20f7501)
 *Widok panelu pokazujący status systemu*
 
-![Zarządzanie słowami kluczowymi](screenshots/keywords.png)
+![Zrzut ekranu 2025-04-13 144621](https://github.com/user-attachments/assets/16b67854-7fe5-4f06-8593-fded7e27d37b)
 *Interfejs zarządzania słowami kluczowymi*
 
-![Ustawienia](screenshots/settings.png)
+![Zrzut ekranu 2025-04-13 144724](https://github.com/user-attachments/assets/5f213b7b-18de-483e-83f8-df1e218ffe2b)
+![Zrzut ekranu 2025-04-13 144740](https://github.com/user-attachments/assets/2de39809-103d-4bae-a4fe-72a9fafeb06a)
+![Zrzut ekranu 2025-04-13 144802](https://github.com/user-attachments/assets/aecda3c9-77db-49a9-a898-7f617111203a)
+![Zrzut ekranu 2025-04-13 144823](https://github.com/user-attachments/assets/f8dfb0e1-b8c4-43f1-b7c6-6855800db516)
 *Ustawienia konfiguracji systemu*
 
 ### 🚀 Instalacja
 
 1. Sklonuj repozytorium:
    ```bash
-   git clone https://github.com/yourusername/words-for-llms.git
-   cd words-for-llms
+   git clone https://github.com/PPTG/The-Words-for-LLM-s.git
+   cd The-Words-for-LLM-s
    ```
 
 2. Skonfiguruj zmienne środowiskowe w pliku `docker-compose.yml` dla swojej instalacji.
