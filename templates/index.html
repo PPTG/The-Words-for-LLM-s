@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" x-bind:lang="language">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Proxy - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Define Alpine functions in head to ensure they're available before Alpine initializes -->
+    <script>
+        function dashboardData() {
+            return {
+                language: 'en',
+                config: {
+                    llm_backend: '...',
+                    webhook_backend: '...',
+                },
+                healthStatus: {
+                    llm: null,
+                    webhook: null,
+                    keywords: '...'
+                },
+                lastUpdateTime: '...',
+                currentDateTime: '',
+                
+                translations: {
+                    en: {
+                        nav: {
+                            dashboard: 'Dashboard',
+                            keywords: 'Keywords',
+                            settings: 'Settings',
+                            language: 'Language'
+                        },
+                        dashboard: {
+                            title: 'Dashboard',
+                            llmStatus: 'LLM Status',
+                            webhookStatus: 'Webhook Status',
+                            keywordsCount: 'Keywords Count',
+                            llmType: 'Type',
+                            webhookType: 'Type',
+                            lastUpdate: 'Last update',
+                            comingSoon: 'Coming Soon',
+                            usageStats: 'Usage Statistics',
+                            usageDesc: 'Detailed metrics on keyword usage and response times',
+                            debugMode: 'Debug Mode',
+                            debugDesc: 'Live monitoring of requests and responses'
+                        },
+                        status: {
+                            online: 'Online',
+                            offline: 'Offline'
+                        }
+                    },
+                    pl: {
+                        nav: {
+                            dashboard: 'Panel główny',
+                            keywords: 'Słowa kluczowe',
+                            settings: 'Ustawienia',
+                            language: 'Język'
+                        },
+                        dashboard: {
+                            title: 'Panel główny',
+                            llmStatus: 'Status LLM',
+                            webhookStatus: 'Status webhook',
+                            keywordsCount: 'Liczba słów',
+                            llmType: 'Typ',
+                            webhookType: 'Typ',
+                            lastUpdate: 'Ostatnia aktualizacja',
+                            comingSoon: 'Wkrótce dostępne',
+                            usageStats: 'Statystyki użycia',
+                            usageDesc: 'Szczegółowe metryki użycia słów kluczowych i czasów odpowiedzi',
+                            debugMode: 'Tryb debugowania',
+                            debugDesc: 'Monitorowanie zapytań i odpowiedzi na żywo'
+                        },
+                        status: {
+                            online: 'Online',
+                            offline: 'Offline'
+                        }
+                    }
+                },
+                
+                get i18n() {
+                    return this.translations[this.language] || this.translations.en;
+                },
+                
+                init() {
+                    // Load saved language preference
+                    const savedLang = localStorage.getItem('llmproxy_language');
+                    if (savedLang) {
+                        this.language = savedLang;
+                    }
+                    
+                    // Update current date time
+                    this.updateDateTime();
+                    setInterval(() => this.updateDateTime(), 60000);
+                    
+                    // Load health status
+                    this.checkHealth();
+                    setInterval(() => this.checkHealth(), 30000);
+                },
+                
+                updateDateTime() {
+                    const now = new Date();
+                    this.currentDateTime = now.toLocaleString(
+                        this.language === 'pl' ? 'pl-PL' : 'en-US',
+                        { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }
+                    );
+                },
+                
+                async checkHealth() {
+                    try {
+                        const response = await fetch('/api/health');
+                        const data = await response.json();
+                        
+                        this.healthStatus = {
+                            llm: data.services.llama === 'ok' || data.services.ollama === 'ok',
+                            webhook: data.services.n8n === 'ok' || data.services.flowise === 'ok',
+                            keywords: data.keywords.count
+                        };
+                        
+                        this.config = {
+                            llm_backend: data.config.llm_backend,
+                            webhook_backend: data.config.webhook_backend
+                        };
+                        
+                        this.lastUpdateTime = new Date().toLocaleTimeString(
+                            this.language === 'pl' ? 'pl-PL' : 'en-US'
+                        );
+                    } catch (error) {
+                        console.error('Error checking health:', error);
+                    }
+                },
+                
+                changeLanguage() {
+                    localStorage.setItem('llmproxy_language', this.language);
+                    this.updateDateTime();
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white" x-data="dashboardData()">
+    <!-- Main Layout -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="bg-gray-800 w-64 flex-shrink-0">
+            <div class="p-4 border-b border-gray-700">
+                <h1 class="text-xl font-bold">The Words for LLM's</h1>
+            </div>
+            <nav class="mt-4">
+                <a href="/" class="flex items-center px-4 py-3 text-white bg-gray-700">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    <span x-text="i18n.nav.dashboard">Dashboard</span>
+                </a>
+                <a href="/keywords" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700">
+                    <i class="fas fa-key mr-3"></i>
+                    <span x-text="i18n.nav.keywords">Keywords</span>
+                </a>
+                <a href="/settings" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700">
+                    <i class="fas fa-cog mr-3"></i>
+                    <span x-text="i18n.nav.settings">Settings</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-64 p-4 border-t border-gray-700">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-400" x-text="i18n.nav.language">Language</span>
+                    <select x-model="language" @change="changeLanguage()" 
+                            class="bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-sm">
+                        <option value="en">English</option>
+                        <option value="pl">Polski</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-gray-800 p-4 shadow">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold" x-text="i18n.dashboard.title">Dashboard</h2>
+                    <div class="text-sm text-gray-400">
+                        <span x-text="currentDateTime"></span>
+                    </div>
+                </div>
+            </header>
+            
+            <main class="p-6">
+                <!-- Status Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-gray-800 rounded-lg shadow p-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm" x-text="i18n.dashboard.llmStatus">LLM Status</p>
+                                <h3 class="text-2xl font-bold mt-1" x-text="healthStatus.llm ? i18n.status.online : i18n.status.offline">Checking...</h3>
+                            </div>
+                            <div x-show="healthStatus.llm" class="rounded-full w-3 h-3 bg-green-500"></div>
+                            <div x-show="!healthStatus.llm" class="rounded-full w-3 h-3 bg-red-500"></div>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-4" x-text="i18n.dashboard.llmType + ': ' + config.llm_backend">Type: checking...</p>
+                    </div>
+                    
+                    <div class="bg-gray-800 rounded-lg shadow p-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm" x-text="i18n.dashboard.webhookStatus">Webhook Status</p>
+                                <h3 class="text-2xl font-bold mt-1" x-text="healthStatus.webhook ? i18n.status.online : i18n.status.offline">Checking...</h3>
+                            </div>
+                            <div x-show="healthStatus.webhook" class="rounded-full w-3 h-3 bg-green-500"></div>
+                            <div x-show="!healthStatus.webhook" class="rounded-full w-3 h-3 bg-red-500"></div>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-4" x-text="i18n.dashboard.webhookType + ': ' + config.webhook_backend">Type: checking...</p>
+                    </div>
+                    
+                    <div class="bg-gray-800 rounded-lg shadow p-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm" x-text="i18n.dashboard.keywordsCount">Keywords Count</p>
+                                <h3 class="text-2xl font-bold mt-1" x-text="healthStatus.keywords">Checking...</h3>
+                            </div>
+                            <div class="text-3xl text-blue-500">
+                                <i class="fas fa-key"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-4" x-text="i18n.dashboard.lastUpdate + ': ' + lastUpdateTime">Last update: never</p>
+                    </div>
+                </div>
+                
+                <!-- Coming Soon Section -->
+                <div class="bg-gray-800 rounded-lg shadow p-6 mb-6">
+                    <h3 class="text-xl font-semibold mb-4" x-text="i18n.dashboard.comingSoon">Coming Soon</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-700 p-4 rounded-lg flex items-center">
+                            <div class="text-yellow-500 text-2xl mr-3">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium" x-text="i18n.dashboard.usageStats">Usage Statistics</h4>
+                                <p class="text-sm text-gray-400" x-text="i18n.dashboard.usageDesc">Detailed metrics on keyword usage and response times</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-700 p-4 rounded-lg flex items-center">
+                            <div class="text-yellow-500 text-2xl mr-3">
+                                <i class="fas fa-bug"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium" x-text="i18n.dashboard.debugMode">Debug Mode</h4>
+                                <p class="text-sm text-gray-400" x-text="i18n.dashboard.debugDesc">Live monitoring of requests and responses</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

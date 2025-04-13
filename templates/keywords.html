@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" x-bind:lang="language">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Proxy - Keywords</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Define Alpine functions in head to ensure they're available before Alpine initializes -->
+    <script>
+        function keywordsData() {
+            return {
+                language: 'en',
+                keywords: [],
+                searchQuery: '',
+                backendFilter: 'all',
+                showAddModal: false,
+                showEditModal: false,
+                showDeleteModal: false,
+                deleteId: null,
+                editKeywordData: {
+                    id: null,
+                    keyword: '',
+                    webhook_id: '',
+                    backend_type: 'n8n',
+                    description: ''
+                },
+                newKeyword: {
+                    keyword: '',
+                    webhook_id: '',
+                    backend_type: 'n8n',
+                    description: ''
+                },
+                
+                translations: {
+                    en: {
+                        nav: {
+                            dashboard: 'Dashboard',
+                            keywords: 'Keywords',
+                            settings: 'Settings',
+                            language: 'Language'
+                        },
+                        keywords: {
+                            title: 'Keywords Management',
+                            addNew: 'Add New',
+                            search: 'Search',
+                            searchPlaceholder: 'Search by keyword or description...',
+                            filter: 'Filter by backend',
+                            allBackends: 'All Backends',
+                            keyword: 'Keyword',
+                            webhookId: 'Webhook ID',
+                            backendType: 'Backend Type',
+                            description: 'Description',
+                            actions: 'Actions',
+                            noResults: 'No keywords found.',
+                            addKeyword: 'Add Keyword',
+                            editKeyword: 'Edit Keyword',
+                            confirmDelete: 'Confirm Delete',
+                            deleteWarning: 'Are you sure you want to delete this keyword? This action cannot be undone.'
+                        },
+                        buttons: {
+                            add: 'Add',
+                            edit: 'Edit',
+                            delete: 'Delete',
+                            save: 'Save',
+                            cancel: 'Cancel'
+                        }
+                    },
+                    pl: {
+                        nav: {
+                            dashboard: 'Panel główny',
+                            keywords: 'Słowa kluczowe',
+                            settings: 'Ustawienia',
+                            language: 'Język'
+                        },
+                        keywords: {
+                            title: 'Zarządzanie słowami kluczowymi',
+                            addNew: 'Dodaj nowe',
+                            search: 'Szukaj',
+                            searchPlaceholder: 'Szukaj po słowach kluczowych lub opisie...',
+                            filter: 'Filtruj według backendu',
+                            allBackends: 'Wszystkie backendy',
+                            keyword: 'Słowo kluczowe',
+                            webhookId: 'ID webhooka',
+                            backendType: 'Typ backendu',
+                            description: 'Opis',
+                            actions: 'Akcje',
+                            noResults: 'Nie znaleziono słów kluczowych.',
+                            addKeyword: 'Dodaj słowo kluczowe',
+                            editKeyword: 'Edytuj słowo kluczowe',
+                            confirmDelete: 'Potwierdź usunięcie',
+                            deleteWarning: 'Czy na pewno chcesz usunąć to słowo kluczowe? Tej operacji nie można cofnąć.'
+                        },
+                        buttons: {
+                            add: 'Dodaj',
+                            edit: 'Edytuj',
+                            delete: 'Usuń',
+                            save: 'Zapisz',
+                            cancel: 'Anuluj'
+                        }
+                    }
+                },
+                
+                get i18n() {
+                    return this.translations[this.language] || this.translations.en;
+                },
+                
+                get filteredKeywords() {
+                    return this.keywords.filter(k => {
+                        // Apply backend filter
+                        if (this.backendFilter !== 'all' && 
+                            (k.backend_type || 'n8n') !== this.backendFilter) {
+                            return false;
+                        }
+                        
+                        // Apply search query
+                        if (this.searchQuery) {
+                            const query = this.searchQuery.toLowerCase();
+                            return k.keyword.toLowerCase().includes(query) || 
+                                   k.description.toLowerCase().includes(query);
+                        }
+                        
+                        return true;
+                    });
+                },
+                
+                init() {
+                    // Load saved language preference
+                    const savedLang = localStorage.getItem('llmproxy_language');
+                    if (savedLang) {
+                        this.language = savedLang;
+                    }
+                    
+                    this.loadKeywords();
+                },
+                
+                async loadKeywords() {
+                    try {
+                        const response = await fetch('/api/keywords/list');
+                        this.keywords = await response.json();
+                    } catch (error) {
+                        console.error('Error loading keywords:', error);
+                    }
+                },
+                
+                async addKeyword() {
+                    try {
+                        const formData = new FormData();
+                        formData.append('keyword', this.newKeyword.keyword);
+                        formData.append('webhook_id', this.newKeyword.webhook_id);
+                        formData.append('backend_type', this.newKeyword.backend_type);
+                        formData.append('description', this.newKeyword.description);
+                        
+                        await fetch('/api/keywords/add', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        this.newKeyword = {
+                            keyword: '',
+                            webhook_id: '',
+                            backend_type: 'n8n',
+                            description: ''
+                        };
+                        
+                        this.showAddModal = false;
+                        this.loadKeywords();
+                    } catch (error) {
+                        console.error('Error adding keyword:', error);
+                    }
+                },
+                
+                editKeyword(keyword) {
+                    this.editKeywordData = { ...keyword };
+                    this.showEditModal = true;
+                },
+                
+                async updateKeyword() {
+                    try {
+                        const formData = new FormData();
+                        formData.append('keyword', this.editKeywordData.keyword);
+                        formData.append('webhook_id', this.editKeywordData.webhook_id);
+                        formData.append('backend_type', this.editKeywordData.backend_type || 'n8n');
+                        formData.append('description', this.editKeywordData.description);
+                        
+                        await fetch(`/api/keywords/edit/${this.editKeywordData.id}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        this.showEditModal = false;
+                        this.loadKeywords();
+                    } catch (error) {
+                        console.error('Error updating keyword:', error);
+                    }
+                },
+                
+                confirmDelete(id) {
+                    this.deleteId = id;
+                    this.showDeleteModal = true;
+                },
+                
+                async deleteKeyword() {
+                    try {
+                        await fetch(`/api/keywords/delete/${this.deleteId}`);
+                        this.showDeleteModal = false;
+                        this.loadKeywords();
+                    } catch (error) {
+                        console.error('Error deleting keyword:', error);
+                    }
+                },
+                
+                changeLanguage() {
+                    localStorage.setItem('llmproxy_language', this.language);
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white" x-data="keywordsData()">
+    <!-- Main Layout -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="bg-gray-800 w-64 flex-shrink-0">
+            <div class="p-4 border-b border-gray-700">
+                <h1 class="text-xl font-bold">The Words for LLM's</h1>
+            </div>
+            <nav class="mt-4">
+                <a href="/" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    <span x-text="i18n.nav.dashboard">Dashboard</span>
+                </a>
+                <a href="/keywords" class="flex items-center px-4 py-3 text-white bg-gray-700">
+                    <i class="fas fa-key mr-3"></i>
+                    <span x-text="i18n.nav.keywords">Keywords</span>
+                </a>
+                <a href="/settings" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700">
+                    <i class="fas fa-cog mr-3"></i>
+                    <span x-text="i18n.nav.settings">Settings</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-64 p-4 border-t border-gray-700">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-400" x-text="i18n.nav.language">Language</span>
+                    <select x-model="language" @change="changeLanguage()" 
+                            class="bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-sm">
+                        <option value="en">English</option>
+                        <option value="pl">Polski</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-gray-800 p-4 shadow">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold" x-text="i18n.keywords.title">Keywords Management</h2>
+                    <button @click="showAddModal = true" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+                        <i class="fas fa-plus mr-2"></i>
+                        <span x-text="i18n.keywords.addNew">Add New</span>
+                    </button>
+                </div>
+            </header>
+            
+            <main class="p-6">
+                <!-- Search & Filter -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow mb-6">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-400 mb-2" x-text="i18n.keywords.search">Search</label>
+                            <div class="relative">
+                                <input type="text" x-model="searchQuery" 
+                                       class="w-full bg-gray-700 border border-gray-600 rounded pl-10 pr-4 py-2 text-white"
+                                       :placeholder="i18n.keywords.searchPlaceholder">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2" x-text="i18n.keywords.filter">Filter</label>
+                            <select x-model="backendFilter" class="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white">
+                                <option value="all" x-text="i18n.keywords.allBackends">All Backends</option>
+                                <option value="n8n">n8n</option>
+                                <option value="flowise">Flowise</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Keywords Table -->
+                <div class="bg-gray-800 rounded-lg shadow overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead>
+                            <tr class="bg-gray-700">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" x-text="i18n.keywords.keyword">Keyword</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" x-text="i18n.keywords.webhookId">Webhook ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" x-text="i18n.keywords.backendType">Backend</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" x-text="i18n.keywords.description">Description</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" x-text="i18n.keywords.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700">
+                            <template x-for="keyword in filteredKeywords" :key="keyword.id">
+                                <tr class="hover:bg-gray-700">
+                                    <td class="px-6 py-4 text-gray-300" x-text="keyword.keyword"></td>
+                                    <td class="px-6 py-4 text-gray-300 truncate max-w-[180px]" x-text="keyword.webhook_id"></td>
+                                    <td class="px-6 py-4 text-gray-300">
+                                        <span x-show="keyword.backend_type === 'n8n'" class="px-2 py-1 bg-blue-900 text-blue-200 rounded-full text-xs">n8n</span>
+                                        <span x-show="keyword.backend_type === 'flowise'" class="px-2 py-1 bg-green-900 text-green-200 rounded-full text-xs">Flowise</span>
+                                        <span x-show="!keyword.backend_type" class="px-2 py-1 bg-blue-900 text-blue-200 rounded-full text-xs">n8n</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-300" x-text="keyword.description"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <button @click="editKeyword(keyword)"
+                                                class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-1 px-3 rounded mr-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button @click="confirmDelete(keyword.id)"
+                                               class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                            <!-- Empty state -->
+                            <tr x-show="filteredKeywords.length === 0">
+                                <td colspan="5" class="px-6 py-10 text-center text-gray-400">
+                                    <i class="fas fa-search text-4xl mb-3"></i>
+                                    <p x-text="i18n.keywords.noResults">No keywords found.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Add Modal -->
+    <div x-show="showAddModal" class="fixed inset-0 flex items-center justify-center z-50" x-transition>
+        <div class="absolute inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
+        <div class="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-lg z-10">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-white" x-text="i18n.keywords.addKeyword">Add Keyword</h3>
+                <button @click="showAddModal = false" class="text-gray-400 hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form @submit.prevent="addKeyword" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300" x-text="i18n.keywords.keyword">Keyword</label>
+                    <input type="text" x-model="newKeyword.keyword" required
+                           class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300" x-text="i18n.keywords.webhookId">Webhook ID</label>
+                    <input type="text" x-model="newKeyword.webhook_id" required
+                           class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300" x-text="i18n.keywords.backendType">Backend Type</label>
+                    <select x-model="newKeyword.backend_type"
+                            class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                        <option value="n8n">n8n</option>
+                        <option value="flowise">Flowise</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300" x-text="i18n.keywords.description">Description</label>
+                    <input type="text" x-model="newKeyword.description"
+                           class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                </div>
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" @click="showAddModal = false"
+                            class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                            x-text="i18n.buttons.cancel">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            x-text="i18n.buttons.add">
+                        Add
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit Modal -->
+    <div x-show="showEditModal" class="fixed inset-0 flex items-center justify-center z-50" x-transition>
+        <div class="absolute inset-0 bg-black opacity-50" @click="showEditModal = false"></div>
+        <div class="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-lg z-10">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-white" x-text="i18n.keywords.editKeyword">Edit Keyword</h3>
+                <button @click="showEditModal = false" class="text-gray-400 hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form @submit.prevent="updateKeyword" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300" x-text="i18n.keywords.keyword">Keyword</label>
+                    <input type="text" x-model="editKeywordData.keyword" required
+                           class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300" x-text="i18n.keywords.webhookId">Webhook ID</label>
+                    <input type="text" x-model="editKeywordData.webhook_id" required
+                           class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300" x-text="i18n.keywords.backendType">Backend Type</label>
+                    <select x-model="editKeywordData.backend_type"
+                            class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                        <option value="n8n">n8n</option>
+                        <option value="flowise">Flowise</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300" x-text="i18n.keywords.description">Description</label>
+                    <input type="text" x-model="editKeywordData.description"
+                           class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                </div>
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" @click="showEditModal = false"
+                            class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                            x-text="i18n.buttons.cancel">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            x-text="i18n.buttons.save">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div x-show="showDeleteModal" class="fixed inset-0 flex items-center justify-center z-50" x-transition>
+        <div class="absolute inset-0 bg-black opacity-50" @click="showDeleteModal = false"></div>
+        <div class="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
+            <div class="mb-4">
+                <h3 class="text-xl font-semibold text-white" x-text="i18n.keywords.confirmDelete">Confirm Delete</h3>
+                <p class="text-gray-300 mt-2" x-text="i18n.keywords.deleteWarning">Are you sure you want to delete this keyword? This action cannot be undone.</p>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button @click="showDeleteModal = false"
+                        class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                        x-text="i18n.buttons.cancel">
+                    Cancel
+                </button>
+                <button @click="deleteKeyword"
+                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                        x-text="i18n.buttons.delete">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

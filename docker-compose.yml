@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8444:8000"
+    environment:
+      - LLAMA_URL=http://192.168.1.166:8988
+      - N8N_URL=http://192.168.1.166:5678
+      - DATABASE_URL=/data/keywords.db
+    volumes:
+      - keywords_data:/data
+    command: uvicorn app:app --host 0.0.0.0 --port 8000
+
+  gui:
+    build: .
+    ports:
+      - "5555:5000"
+    depends_on:
+      - api
+    environment:
+      - API_URL=http://api:8000/api
+    command: python gui.py
+
+volumes:
+  keywords_data:

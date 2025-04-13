@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en" x-bind:lang="language">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Proxy - Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Define Alpine functions in head to ensure they're available before Alpine initializes -->
+    <script>
+        function settingsData() {
+            return {
+                language: 'en',
+                activeTab: 'general',
+                configs: {
+                    language: 'en',
+					darkMode: true,
+					llm_backend: 'llama.cpp',
+					llama_url: 'http://192.168.1.166:8988',
+					ollama_url: 'http://192.168.1.166:11434',
+					ollama_model: 'llama2',
+					webhook_backend: 'n8n',
+					n8n_url: 'http://192.168.1.166:5678',
+					n8n_use_test_webhook: false,  // Add this line
+					flowise_url: 'http://192.168.1.166:3000',
+					temperature: 0.7,
+					max_tokens: 400,
+					timeout: 60,
+					debug_mode: false
+                },
+                showConfirmModal: false,
+                confirmTitle: '',
+                confirmMessage: '',
+                confirmCallback: null,
+                showSuccessToast: false,
+                successMessage: '',
+                
+                translations: {
+                    en: {
+                        nav: {
+                            dashboard: 'Dashboard',
+                            keywords: 'Keywords',
+                            settings: 'Settings',
+                            language: 'Language'
+                        },
+                        settings: {
+                            title: 'Settings',
+                            saveAll: 'Save All Changes',
+                            general: 'General',
+                            llm: 'LLM Integration',
+                            webhook: 'Webhook Services',
+                            advanced: 'Advanced',
+                            interfaceSettings: 'Interface Settings',
+                            language: 'Language',
+                            languageHelp: 'Select your preferred interface language',
+                            darkMode: 'Dark Mode',
+                            darkModeHelp: 'Always use dark mode for the interface',
+                            llmSettings: 'LLM Settings',
+                            primaryLLM: 'Primary LLM',
+                            llmHelp: 'Select which LLM backend to use for processing requests',
+                            llamaUrl: 'Llama.cpp URL',
+                            llamaUrlHelp: 'URL of your Llama.cpp server including protocol and port',
+                            ollamaUrl: 'Ollama URL',
+                            ollamaUrlHelp: 'URL of your Ollama server including protocol and port',
+                            ollamaModel: 'Ollama Model Name',
+                            ollamaModelHelp: 'The name of the model to use with Ollama (e.g., llama2, mistral)',
+                            llmParams: 'Generation Parameters',
+                            temperature: 'Temperature',
+                            temperatureHelp: 'Controls randomness (0-2)',
+                            maxTokens: 'Max Tokens',
+                            maxTokensHelp: 'Maximum number of tokens to generate',
+                            webhookSettings: 'Webhook Settings',
+                            defaultWebhook: 'Default Webhook Service',
+                            webhookHelp: 'Select which service to use for webhook processing',
+                            n8nUrl: 'n8n URL',
+                            n8nUrlHelp: 'URL of your n8n server including protocol and port',
+							n8nTestWebhook: 'Use Test Webhook',
+							n8nTestWebhookHelp: 'When enabled, proxy will use webhook-test for automation testing',
+                            flowiseUrl: 'Flowise URL',
+                            flowiseUrlHelp: 'URL of your Flowise server including protocol and port',
+                            advancedSettings: 'Advanced Settings',
+                            timeoutSeconds: 'Request Timeout (seconds)',
+                            timeoutHelp: 'Maximum time to wait for external service responses',
+                            debugMode: 'Debug Mode',
+                            debugModeHelp: 'Enable detailed logging for troubleshooting',
+                            dangerZone: 'Danger Zone',
+                            resetSettings: 'Reset to Defaults',
+                            resetHelp: 'This will reset all settings to their default values',
+                            savedSuccess: 'Settings saved successfully!'
+                        },
+                        buttons: {
+                            save: 'Save',
+                            cancel: 'Cancel',
+                            confirm: 'Confirm'
+                        },
+                        confirmations: {
+                            resetTitle: 'Confirm Reset',
+                            resetMessage: 'Are you sure you want to reset all settings to defaults? This cannot be undone.'
+                        }
+                    },
+                    pl: {
+                        nav: {
+                            dashboard: 'Panel główny',
+                            keywords: 'Słowa kluczowe',
+                            settings: 'Ustawienia',
+                            language: 'Język'
+                        },
+                        settings: {
+                            title: 'Ustawienia',
+                            saveAll: 'Zapisz wszystkie zmiany',
+                            general: 'Ogólne',
+                            llm: 'Integracja LLM',
+                            webhook: 'Serwisy Webhook',
+                            advanced: 'Zaawansowane',
+                            interfaceSettings: 'Ustawienia interfejsu',
+                            language: 'Język',
+                            languageHelp: 'Wybierz preferowany język interfejsu',
+                            darkMode: 'Tryb ciemny',
+                            darkModeHelp: 'Zawsze używaj ciemnego motywu dla interfejsu',
+                            llmSettings: 'Ustawienia LLM',
+                            primaryLLM: 'Główny LLM',
+                            llmHelp: 'Wybierz, którego backendu LLM używać do przetwarzania zapytań',
+                            llamaUrl: 'URL Llama.cpp',
+                            llamaUrlHelp: 'URL twojego serwera Llama.cpp wraz z protokołem i portem',
+                            ollamaUrl: 'URL Ollama',
+                            ollamaUrlHelp: 'URL twojego serwera Ollama wraz z protokołem i portem',
+                            ollamaModel: 'Nazwa modelu Ollama',
+                            ollamaModelHelp: 'Nazwa modelu do użycia z Ollama (np. llama2, mistral)',
+                            llmParams: 'Parametry generowania',
+                            temperature: 'Temperatura',
+                            temperatureHelp: 'Kontroluje losowość (0-2)',
+                            maxTokens: 'Maksymalna liczba tokenów',
+                            maxTokensHelp: 'Maksymalna liczba tokenów do wygenerowania',
+                            webhookSettings: 'Ustawienia Webhook',
+                            defaultWebhook: 'Domyślny serwis Webhook',
+                            webhookHelp: 'Wybierz, którego serwisu używać do przetwarzania webhooków',
+                            n8nUrl: 'URL n8n',
+                            n8nUrlHelp: 'URL twojego serwera n8n wraz z protokołem i portem',
+							n8nTestWebhook: 'Użyj testowego webhooka',
+							n8nTestWebhookHelp: 'Po włączeniu, proxy będzie używać webhook-test do testowania automatyzacji',
+                            flowiseUrl: 'URL Flowise',
+                            flowiseUrlHelp: 'URL twojego serwera Flowise wraz z protokołem i portem',
+                            advancedSettings: 'Ustawienia zaawansowane',
+                            timeoutSeconds: 'Limit czasu żądania (sekundy)',
+                            timeoutHelp: 'Maksymalny czas oczekiwania na odpowiedzi usług zewnętrznych',
+                            debugMode: 'Tryb debugowania',
+                            debugModeHelp: 'Włącz szczegółowe logowanie do rozwiązywania problemów',
+                            dangerZone: 'Strefa niebezpieczna',
+                            resetSettings: 'Przywróć ustawienia domyślne',
+                            resetHelp: 'Spowoduje to zresetowanie wszystkich ustawień do wartości domyślnych',
+                            savedSuccess: 'Ustawienia zapisane pomyślnie!'
+                        },
+                        buttons: {
+                            save: 'Zapisz',
+                            cancel: 'Anuluj',
+                            confirm: 'Potwierdź'
+                        },
+                        confirmations: {
+                            resetTitle: 'Potwierdź reset',
+                            resetMessage: 'Czy na pewno chcesz zresetować wszystkie ustawienia do wartości domyślnych? Tej operacji nie można cofnąć.'
+                        }
+                    }
+                },
+                
+                get i18n() {
+                    return this.translations[this.language] || this.translations.en;
+                },
+                
+                init() {
+                    // Load saved language preference
+                    const savedLang = localStorage.getItem('llmproxy_language');
+                    if (savedLang) {
+                        this.language = savedLang;
+                    }
+                    
+                    this.loadConfigs();
+                },
+                
+                async loadConfigs() {
+                    try {
+                        const response = await fetch('/api/config/list');
+                        const configData = await response.json();
+                        
+                        // Update configs from server data
+                        configData.forEach(item => {
+                            if (this.configs.hasOwnProperty(item.id)) {
+                                // Convert boolean strings to actual booleans
+                                if (item.value === 'true' || item.value === 'false') {
+                                    this.configs[item.id] = item.value === 'true';
+                                } 
+                                // Convert numeric strings to numbers
+                                else if (!isNaN(item.value) && item.id !== 'webhook_id') {
+                                    this.configs[item.id] = Number(item.value);
+                                }
+                                else {
+                                    this.configs[item.id] = item.value;
+                                }
+                            }
+                        });
+                        
+                        // Update language from config
+                        if (this.configs.language) {
+                            this.language = this.configs.language;
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error loading configurations:', error);
+                    }
+                },
+                
+                async saveAllSettings() {
+					try {
+						for (const [key, value] of Object.entries(this.configs)) {
+							await this.updateConfig(key, value);
+						}
+						
+						// Update language
+						this.language = this.configs.language;
+						localStorage.setItem('llmproxy_language', this.language);
+						
+						// Show success message
+						this.showSuccessMessage(this.i18n.settings.savedSuccess);
+						
+					} catch (error) {
+						console.error('Error saving settings:', error);
+					}
+				},
+                
+                async updateConfig(id, value) {
+					// Convert boolean values to strings for the backend
+					const stringValue = typeof value === 'boolean' ? String(value) : value;
+					
+					const formData = new FormData();
+					formData.append('value', stringValue);
+					formData.append('description', '');
+					
+					console.log(`Saving config ${id}: ${stringValue} (${typeof value})`);
+					
+					await fetch(`/api/config/update/${id}`, {
+						method: 'POST',
+						body: formData
+					});
+                },
+                
+                resetConfig() {
+					this.confirmTitle = this.i18n.confirmations.resetTitle;
+					this.confirmMessage = this.i18n.confirmations.resetMessage;
+					this.confirmCallback = async () => {
+						// Reset to defaults
+						this.configs = {
+							language: 'en',
+							darkMode: true,
+							llm_backend: 'llama.cpp',
+							llama_url: 'http://192.168.1.166:8988',
+							ollama_url: 'http://192.168.1.166:11434',
+							ollama_model: 'llama2',
+							webhook_backend: 'n8n',
+							n8n_url: 'http://192.168.1.166:5678',
+							n8n_use_test_webhook: false,  // Add this line
+							flowise_url: 'http://192.168.1.166:3000',
+							temperature: 0.7,
+							max_tokens: 400,
+							timeout: 60,
+							debug_mode: false
+						};
+						
+						await this.saveAllSettings();
+					};
+					this.showConfirmModal = true;
+				},
+                
+                confirmAction() {
+                    if (this.confirmCallback) {
+                        this.confirmCallback();
+                    }
+                    this.showConfirmModal = false;
+                },
+                
+                showSuccessMessage(message) {
+                    this.successMessage = message;
+                    this.showSuccessToast = true;
+                    
+                    // Auto-hide after 3 seconds
+                    setTimeout(() => {
+                        this.showSuccessToast = false;
+                    }, 3000);
+                },
+                
+                changeLanguage() {
+                    localStorage.setItem('llmproxy_language', this.language);
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white" x-data="settingsData()">
+    <!-- Main Layout -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="bg-gray-800 w-64 flex-shrink-0">
+            <div class="p-4 border-b border-gray-700">
+                <h1 class="text-xl font-bold">The Words for LLM's</h1>
+            </div>
+            <nav class="mt-4">
+                <a href="/" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    <span x-text="i18n.nav.dashboard">Dashboard</span>
+                </a>
+                <a href="/keywords" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700">
+                    <i class="fas fa-key mr-3"></i>
+                    <span x-text="i18n.nav.keywords">Keywords</span>
+                </a>
+                <a href="/settings" class="flex items-center px-4 py-3 text-white bg-gray-700">
+                    <i class="fas fa-cog mr-3"></i>
+                    <span x-text="i18n.nav.settings">Settings</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-64 p-4 border-t border-gray-700">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-400" x-text="i18n.nav.language">Language</span>
+                    <select x-model="language" @change="changeLanguage()" 
+                            class="bg-gray-700 text-white border border-gray-600 rounded px-2 py-1 text-sm">
+                        <option value="en">English</option>
+                        <option value="pl">Polski</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-gray-800 p-4 shadow">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold" x-text="i18n.settings.title">Settings</h2>
+                    <div>
+                        <button @click="saveAllSettings()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+                            <i class="fas fa-save mr-2"></i>
+                            <span x-text="i18n.settings.saveAll">Save All Changes</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <main class="p-6 max-w-5xl mx-auto">
+                <!-- Settings Tabs -->
+                <div class="mb-6">
+                    <div class="border-b border-gray-700">
+                        <nav class="flex -mb-px">
+                            <button @click="activeTab = 'general'" 
+                                :class="activeTab === 'general' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-gray-300'"
+                                class="px-4 py-2 border-b-2 font-medium text-sm">
+                                <i class="fas fa-sliders-h mr-2"></i>
+                                <span x-text="i18n.settings.general">General</span>
+                            </button>
+                            <button @click="activeTab = 'llm'" 
+                                :class="activeTab === 'llm' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-gray-300'"
+                                class="px-4 py-2 border-b-2 font-medium text-sm ml-8">
+                                <i class="fas fa-robot mr-2"></i>
+                                <span x-text="i18n.settings.llm">LLM Integration</span>
+                            </button>
+                            <button @click="activeTab = 'webhook'" 
+                                :class="activeTab === 'webhook' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-gray-300'"
+                                class="px-4 py-2 border-b-2 font-medium text-sm ml-8">
+                                <i class="fas fa-link mr-2"></i>
+                                <span x-text="i18n.settings.webhook">Webhook Services</span>
+                            </button>
+                            <button @click="activeTab = 'advanced'" 
+                                :class="activeTab === 'advanced' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-gray-300'"
+                                class="px-4 py-2 border-b-2 font-medium text-sm ml-8">
+                                <i class="fas fa-code mr-2"></i>
+                                <span x-text="i18n.settings.advanced">Advanced</span>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+                
+                <!-- General Settings Tab -->
+                <div x-show="activeTab === 'general'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                    <div class="bg-gray-800 rounded-lg shadow p-6 mb-6">
+                        <h3 class="text-lg font-medium text-white mb-4" x-text="i18n.settings.interfaceSettings">Interface Settings</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.language">Language</label>
+                                <select x-model="configs.language" class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                                    <option value="en">English</option>
+                                    <option value="pl">Polski</option>
+                                </select>
+                                <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.languageHelp">Select your preferred interface language</p>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="flex items-center h-5">
+                                    <input id="darkMode" type="checkbox" x-model="configs.darkMode" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="darkMode" class="font-medium text-gray-300" x-text="i18n.settings.darkMode">Dark Mode</label>
+                                    <p class="text-gray-400" x-text="i18n.settings.darkModeHelp">Always use dark mode for the interface</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- LLM Settings Tab -->
+                <div x-show="activeTab === 'llm'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                    <div class="bg-gray-800 rounded-lg shadow p-6 mb-6">
+                        <h3 class="text-lg font-medium text-white mb-4" x-text="i18n.settings.llmSettings">LLM Settings</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.primaryLLM">Primary LLM</label>
+                                <select x-model="configs.llm_backend" class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                                    <option value="llama.cpp">Llama.cpp</option>
+                                    <option value="ollama">Ollama</option>
+                                </select>
+                                <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.llmHelp">Select which LLM backend to use for processing requests</p>
+                            </div>
+                            
+                            <div x-show="configs.llm_backend === 'llama.cpp'">
+                                <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.llamaUrl">Llama.cpp URL</label>
+                                <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-600 text-gray-300 text-sm">
+                                        <i class="fas fa-link"></i>
+                                    </span>
+                                    <input type="text" x-model="configs.llama_url" 
+                                           class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md bg-gray-700 border border-gray-600 text-white">
+                                </div>
+                                <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.llamaUrlHelp">URL of your Llama.cpp server including protocol and port</p>
+                            </div>
+                            
+                            <div x-show="configs.llm_backend === 'ollama'">
+                                <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.ollamaUrl">Ollama URL</label>
+                                <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-600 text-gray-300 text-sm">
+                                        <i class="fas fa-link"></i>
+                                    </span>
+                                    <input type="text" x-model="configs.ollama_url" 
+                                           class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md bg-gray-700 border border-gray-600 text-white">
+                                </div>
+                                <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.ollamaUrlHelp">URL of your Ollama server including protocol and port</p>
+                                
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.ollamaModel">Ollama Model Name</label>
+                                    <input type="text" x-model="configs.ollama_model" 
+                                           class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                                    <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.ollamaModelHelp">The name of the model to use with Ollama (e.g., llama2, mistral)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4 pt-4 border-t border-gray-700">
+                                <h4 class="text-md font-medium text-white" x-text="i18n.settings.llmParams">Generation Parameters</h4>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.temperature">Temperature</label>
+                                        <input type="number" x-model="configs.temperature" min="0" max="2" step="0.1"
+                                               class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                                        <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.temperatureHelp">Controls randomness (0-2)</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.maxTokens">Max Tokens</label>
+                                        <input type="number" x-model="configs.max_tokens" min="10" max="4096"
+                                               class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                                        <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.maxTokensHelp">Maximum number of tokens to generate</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Webhook Tab -->
+                <div x-show="activeTab === 'webhook'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                    <div class="bg-gray-800 rounded-lg shadow p-6 mb-6">
+                        <h3 class="text-lg font-medium text-white mb-4" x-text="i18n.settings.webhookSettings">Webhook Settings</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.defaultWebhook">Default Webhook Service</label>
+                                <select x-model="configs.webhook_backend" class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                                    <option value="n8n">n8n</option>
+                                    <option value="flowise">Flowise</option>
+                                </select>
+                                <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.webhookHelp">Select which service to use for webhook processing</p>
+                            </div>
+                            
+                            <div x-show="configs.webhook_backend === 'n8n' || configs.webhook_backend === 'all'">
+								<label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.n8nUrl">n8n URL</label>
+								<div class="mt-1 flex rounded-md shadow-sm">
+									<span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-600 text-gray-300 text-sm">
+										<i class="fas fa-link"></i>
+									</span>
+									<input type="text" x-model="configs.n8n_url" 
+										   class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md bg-gray-700 border border-gray-600 text-white">
+								</div>
+								<p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.n8nUrlHelp">URL of your n8n server including protocol and port</p>
+								
+								<!-- New checkbox for n8n test webhook -->
+								<div class="flex items-center mt-4">
+									<div class="flex items-center h-5">
+										<input id="n8nTestWebhook" type="checkbox" x-model="configs.n8n_use_test_webhook" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+									</div>
+									<div class="ml-3 text-sm">
+										<label for="n8nTestWebhook" class="font-medium text-gray-300" x-text="i18n.settings.n8nTestWebhook">Use Test Webhook</label>
+										<p class="text-gray-400" x-text="i18n.settings.n8nTestWebhookHelp">When enabled, proxy will use webhook-test for automation testing</p>
+									</div>
+								</div>
+							</div>
+                            
+                            <div x-show="configs.webhook_backend === 'flowise' || configs.webhook_backend === 'all'">
+                                <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.flowiseUrl">Flowise URL</label>
+                                <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-600 text-gray-300 text-sm">
+                                        <i class="fas fa-link"></i>
+                                    </span>
+                                    <input type="text" x-model="configs.flowise_url" 
+                                           class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md bg-gray-700 border border-gray-600 text-white">
+                                </div>
+                                <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.flowiseUrlHelp">URL of your Flowise server including protocol and port</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Advanced Tab -->
+                <div x-show="activeTab === 'advanced'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                    <div class="bg-gray-800 rounded-lg shadow p-6 mb-6">
+                        <h3 class="text-lg font-medium text-white mb-4" x-text="i18n.settings.advancedSettings">Advanced Settings</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300" x-text="i18n.settings.timeoutSeconds">Request Timeout (seconds)</label>
+                                <input type="number" x-model="configs.timeout" min="5" max="300"
+                                       class="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white p-2">
+                                <p class="mt-1 text-sm text-gray-400" x-text="i18n.settings.timeoutHelp">Maximum time to wait for external service responses</p>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="flex items-center h-5">
+                                    <input id="debugMode" type="checkbox" x-model="configs.debug_mode" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="debugMode" class="font-medium text-gray-300" x-text="i18n.settings.debugMode">Debug Mode</label>
+                                    <p class="text-gray-400" x-text="i18n.settings.debugModeHelp">Enable detailed logging for troubleshooting</p>
+                                </div>
+                            </div>
+                            
+                            <div class="pt-4 border-t border-gray-700">
+                                <h4 class="text-md font-medium text-white mb-2" x-text="i18n.settings.dangerZone">Danger Zone</h4>
+                                <button @click="resetConfig()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <span x-text="i18n.settings.resetSettings">Reset to Defaults</span>
+                                </button>
+                                <p class="mt-2 text-sm text-gray-400" x-text="i18n.settings.resetHelp">This will reset all settings to their default values</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div x-show="showConfirmModal" class="fixed inset-0 flex items-center justify-center z-50" x-transition>
+        <div class="absolute inset-0 bg-black opacity-50" @click="showConfirmModal = false"></div>
+        <div class="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md z-10">
+            <div class="mb-4">
+                <h3 class="text-xl font-semibold text-white" x-text="confirmTitle">Confirmation</h3>
+                <p class="text-gray-300 mt-2" x-text="confirmMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button @click="showConfirmModal = false"
+                        class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                        x-text="i18n.buttons.cancel">
+                    Cancel
+                </button>
+                <button @click="confirmAction"
+                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                        x-text="i18n.buttons.confirm">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Toast -->
+    <div x-show="showSuccessToast" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-2"
+         class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg flex items-center">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span x-text="successMessage">Settings saved successfully!</span>
+    </div>
+</body>
+</html>
